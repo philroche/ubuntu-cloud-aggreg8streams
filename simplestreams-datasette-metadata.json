@@ -6,7 +6,8 @@
            "queries": {
                "aws_bionic": "select * from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' order by aliases desc",
                "aws_bionic_eu_west_1_ami": "select image_id from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' and virt = 'hvm' and root_store = 'ssd' and region = 'eu-west-1' order by updated desc",
-               "bionic_aws_azure_gce_europe": "select content_id, image_id, region from cloudimage where release = 'bionic' and (content_id like '%aws' or content_id like '%gce' or content_id like '%azure') and arch = 'amd64' and (region like 'eu-west-%' or region like 'West Europe' or region like 'europe-west%') order by updated desc"
+               "bionic_aws_azure_gce_europe": "select content_id, image_id, region from cloudimage where release = 'bionic' and (content_id like '%aws' or content_id like '%gce' or content_id like '%azure') and arch = 'amd64' and (region like 'eu-west-%' or region like 'West Europe' or region like 'europe-west%') order by updated desc",
+               "download_bionic": "select content_id, item_url, sha256 from cloudimage where label = 'release' and release = 'bionic' and content_id like '%download' and arch = 'amd64' and item_name = 'squashfs' order by updated desc limit 1"
            }
        }
     }
