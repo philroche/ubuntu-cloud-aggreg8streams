@@ -16,8 +16,10 @@
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with Simplestreams.  If not, see <http://www.gnu.org/licenses/>.
+# Usage:
+# python parse_simplestreams.py --base --append http://cloud-images.ubuntu.com/releases/streams/v1/index.sjson
+# python parse_simplestreams.py --minimal --append http://cloud-images.ubuntu.com/minimal/daily/streams/v1/index.sjson
 from peewee import *
-from simplestreams import filters
 from simplestreams import mirrors
 from simplestreams import util
 
@@ -25,8 +27,10 @@ import argparse
 import errno
 import signal
 import sys
+import os
 
-db = SqliteDatabase('simplestreams.db')
+SQLITE_DB_NAME="simplestreams.db"
+db = SqliteDatabase(SQLITE_DB_NAME)
 
 '''
   {
@@ -62,8 +66,11 @@ class CloudImage(Model):
     class Meta:
         database = db
 
+    family = CharField(index=True)
+    release = CharField(null=True, index=True)
+    version = CharField(null=True)
+    version_name = CharField(null=True)
     aliases = CharField(null=True)
-    arch = CharField(null=True, index=True)
     content_id = CharField(index=True)
     crsn = CharField(null=True)
     datatype = CharField()
@@ -76,16 +83,14 @@ class CloudImage(Model):
     product_name = CharField(index=True)
     pubname = CharField(null=True, index=True)
     region = CharField(null=True, index=True)
-    release = CharField(null=True, index=True)
     release_codename = CharField(null=True, index=True)
     release_title = CharField(null=True, index=True)
-    root_store = CharField(null=True)
     support_eol = DateField(null=True)
     supported = BooleanField(null=True, index=True)
     updated = DateTimeField(index=True)
-    version = CharField(null=True)
-    version_name = CharField(null=True)
+    arch = CharField(null=True, index=True)
     virt = CharField(null=True)
+    root_store = CharField(null=True)
     ftype = CharField(null=True, index=True)
     path = CharField(null=True)
     item_url = CharField(null=True)
@@ -126,9 +131,25 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('mirror_url')
+    parser.add_argument('--append', '-a', action='store_true',
+                        dest='append', default=False,
+                        help="Append parsed items to database rather "
+                             "than create new database")
+    family_group = parser.add_mutually_exclusive_group()
+    family_group.add_argument('--family', '-f', action='store',
+                                dest='family', default=None,
+                                help="Specify the family of images in stream "
+                                     "eg. base or minimal)")
+    family_group.add_argument('--base', action='store_const',
+                                const="base", dest='family',
+                                help="This is a stream with base images")
+    family_group.add_argument('--minimal', action='store_const',
+                                const="minimal", dest='family',
+                                help="This is a stream with minimal images")
 
     cmdargs = parser.parse_args()
 
+    image_family = cmdargs.family or "base"
     (mirror_url, path) = util.path_from_mirror_url(cmdargs.mirror_url, None)
 
     initial_path = path
@@ -148,11 +169,18 @@ def main():
     tmirror = FilterMirror(config=cfg)
     try:
         tmirror.sync(smirror, path)
-        db.connect()
-        db.create_tables([CloudImage])
-        for cloud_image_entry in tmirror.entries:
-            print(cloud_image_entry)
-            CloudImage.create(**cloud_image_entry)
+
+        if not cmdargs.append:
+            try:
+                os.remove(SQLITE_DB_NAME)
+            except OSError:
+                pass
+
+        with db:
+            db.create_tables([CloudImage])
+            for cloud_image_entry in tmirror.entries:
+                print(cloud_image_entry)
+                CloudImage.create(family=image_family, **cloud_image_entry)
     except IOError as e:
         if e.errno == errno.EPIPE:
             sys.exit(0x80 | signal.SIGPIPE)
