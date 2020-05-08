@@ -1,21 +1,36 @@
 {
+  "persistent_urls": "true",
   "databases": {
-  "simplestreams": {
-    "title": "Query Simple-streams ",
-    "description": "Query simple-streams data using SQL and expose results as a JSON API. Example queries listed below.",
-    "queries": {
-      "base_images": "select * from cloudimage where family = 'base' order by updated desc",
-      "minimal_images": "select * from cloudimage where family = 'minimal' order by updated desc",
-      "bionic_base_images": "select * from cloudimage where label = 'release' and release = 'bionic' and family = 'base' order by updated desc",
-      "bionic_minimal_images": "select * from cloudimage where release = 'bionic' and family = 'minimal' order by updated desc",
-      "xenial_base_images": "select * from cloudimage where label = 'release' and release = 'xenial' and family = 'base' order by updated desc",
-      "xenial_minimal_images": "select * from cloudimage where release = 'xenial' and family = 'minimal' order by updated desc",
-      "trusty_images": "select * from cloudimage where label = 'release' and release = 'trusty' and family = 'base' order by updated desc",
-      "aws_bionic": "select * from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' and family = 'base' order by aliases desc",
-      "aws_bionic_eu_west_1_ami": "select image_id from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' and virt = 'hvm' and root_store = 'ssd' and region = 'eu-west-1' and family = 'base' order by updated desc",
-      "bionic_aws_azure_gce_europe": "select content_id, image_id, region from cloudimage where release = 'bionic' and (content_id like '%aws' or content_id like '%gce' or content_id like '%azure') and arch = 'amd64' and (region like 'eu-west-%' or region like 'West Europe' or region like 'europe-west%') and family = 'base' order by updated desc",
-      "download_bionic": "select content_id, item_url, sha256 from cloudimage where label = 'release' and release = 'bionic' and content_id like '%download' and arch = 'amd64' and item_name = 'squashfs' and family = 'base' order by updated desc limit 1"
+    "simplestreams": {
+      "title": "Query Simple-streams ",
+      "description": "Query simple-streams data using SQL and expose results as a JSON API. Example queries listed below.",
+      "tables": {
+          "cloudimage": {
+            "facets": ["family", "release", "content_id", "arch", "virt"]
+          }
+        },
+      "queries": {
+          "USN-3887-1: snapd vulnerability CVE": "select * from cloudimage where (version_name = '20190212.1' and release = 'bionic') or (version_name = '20190212' and release != 'bionic') order by version_name desc",
+          "base_images": "select * from cloudimage where family = 'base' order by version_name desc",
+          "minimal_images": "select * from cloudimage where family = 'minimal' order by version_name desc",
+          "cosmic_20181018": "select * from cloudimage where label = 'release' and release = 'cosmic' and version_name = '20181018' order by family desc,version_name desc",
+          "cosmic_base_images": "select * from cloudimage where label = 'release' and release = 'cosmic' and family = 'base' order by version_name desc",
+          "cosmic_minimal_images": "select * from cloudimage where release = 'cosmic' and family = 'minimal' order by version_name desc",
+          "bionic_base_images": "select * from cloudimage where label = 'release' and release = 'bionic' and family = 'base' order by version_name desc",
+          "bionic_minimal_images": "select * from cloudimage where release = 'bionic' and family = 'minimal' order by version_name desc",
+          "xenial_base_images": "select * from cloudimage where label = 'release' and release = 'xenial' and family = 'base' order by version_name desc",
+          "xenial_minimal_images": "select * from cloudimage where release = 'xenial' and family = 'minimal' order by version_name desc",
+          "trusty_images": "select * from cloudimage where label = 'release' and release = 'trusty' and family = 'base' order by version_name desc",
+          "aws_arm64_base": "select * from cloudimage where (aliases like '%16.04%' or aliases like '%18.04%' or aliases like '%18.10%') and arch = 'arm64' and content_id like '%aws%' and family = 'base' order by aliases desc",
+          "aws_cosmic": "select * from cloudimage where aliases like '%18.10%' and arch = 'amd64' and content_id like '%aws%' and family = 'base' order by aliases desc",
+          "aws_bionic": "select * from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' and family = 'base' order by aliases desc",
+          "aws_bionic_eu_west_1_ami": "select image_id from cloudimage where aliases like '%18.04%' and arch = 'amd64' and content_id like '%aws%' and virt = 'hvm' and root_store = 'ssd' and region = 'eu-west-1' and family = 'base' order by version_name desc",
+          "bionic_aws_azure_gce_europe": "select content_id, image_id, region from cloudimage where release = 'bionic' and (content_id like '%aws' or content_id like '%gce' or content_id like '%azure') and arch = 'amd64' and (region like 'eu-west-%' or region like 'West Europe' or region like 'europe-west%') and family = 'base' order by version_name desc",
+          "download_bionic": "select content_id, item_url, sha256 from cloudimage where label = 'release' and release = 'bionic' and content_id like '%download' and arch = 'amd64' and item_name = 'squashfs' and family = 'base' order by version_name desc limit 1",
+          "minimal_bionic_release": "select content_id, version, version_name, item_url as image, 'download' as region from cloudimage where content_id like '%download' and family = 'minimal' and release = 'bionic' and ftype = 'disk1.img' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'bionic' and content_id like '%gce' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'bionic' and content_id like '%aws' order by content_id, version_name, region",
+          "minimal_xenial_release": "select content_id, version, version_name, item_url as image, 'download' as region from cloudimage where content_id like '%download' and family = 'minimal' and release = 'xenial' and ftype = 'disk1.img' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'xenial' and content_id like '%gce' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'xenial' and content_id like '%aws' order by content_id, version_name, region",
+          "minimal_cosmic_release": "select content_id, version, version_name, item_url as image, 'download' as region from cloudimage where content_id like '%download' and family = 'minimal' and release = 'cosmic' and ftype = 'disk1.img' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'cosmic' and content_id like '%gce' UNION select content_id, version, version_name, image_id as image, crsn as region from cloudimage where family = 'minimal' and release = 'cosmic' and content_id like '%aws' order by content_id, version_name, region"
+      }
+      }
     }
-    }
-  }
 }
