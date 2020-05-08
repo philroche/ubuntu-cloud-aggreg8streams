@@ -17,8 +17,19 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with Simplestreams.  If not, see <http://www.gnu.org/licenses/>.
 # Usage:
-# python parse_simplestreams.py --base --append http://cloud-images.ubuntu.com/releases/streams/v1/index.sjson
-# python parse_simplestreams.py --minimal --append http://cloud-images.ubuntu.com/minimal/daily/streams/v1/index.sjson
+# python parse_simplestreams.py --base http://cloud-images.ubuntu.com/releases/streams/v1/index.sjson
+# python parse_simplestreams.py --minimal --append http://cloud-images.ubuntu.com/minimal/releases/streams/v1/index.sjson
+
+
+# python parse_simplestreams.py --base http://cloud-images.ubuntu.com/releases/streams/v1/index.sjson
+# python parse_simplestreams.py --minimal --append http://cloud-images.ubuntu.com/minimal/releases/streams/v1/index.sjson
+
+# datasette publish now simplestreams.db -m simplestreams-datasette-metadata.json
+# OR
+# datasette package simplestreams.db -m simplestreams-datasette-metadata.json
+# now alias https://datasette-cdfjehjqql.now.sh/ simplestreams-api
+# datasette serve simplestreams.db -m simplestreams-datasette-metadata.json --debug
+# now scale simplestreams-api.now.sh 1
 from peewee import *
 from simplestreams import mirrors
 from simplestreams import util
@@ -29,8 +40,9 @@ import signal
 import sys
 import os
 
-SQLITE_DB_NAME="simplestreams.db"
-db = SqliteDatabase(SQLITE_DB_NAME)
+DEFAULT_SQLITE_DB_NAME = "simplestreams.db"
+db = SqliteDatabase(None)
+
 
 '''
   {
@@ -135,6 +147,11 @@ def main():
                         dest='append', default=False,
                         help="Append parsed items to database rather "
                              "than create new database")
+    parser.add_argument('--database', '-d', action='store',
+                        dest='database',
+                        default=DEFAULT_SQLITE_DB_NAME,
+                        help="Specify the location of the database "
+                             "to create/append to")
     family_group = parser.add_mutually_exclusive_group()
     family_group.add_argument('--family', '-f', action='store',
                                 dest='family', default=None,
@@ -147,10 +164,15 @@ def main():
                                 const="minimal", dest='family',
                                 help="This is a stream with minimal images")
 
+
     cmdargs = parser.parse_args()
 
     image_family = cmdargs.family or "base"
     (mirror_url, path) = util.path_from_mirror_url(cmdargs.mirror_url, None)
+
+    database = cmdargs.database
+    database_name = database or DEFAULT_SQLITE_DB_NAME
+    db.init(database_name)
 
     initial_path = path
 
@@ -172,7 +194,7 @@ def main():
 
         if not cmdargs.append:
             try:
-                os.remove(SQLITE_DB_NAME)
+                os.remove(database_name)
             except OSError:
                 pass
 
