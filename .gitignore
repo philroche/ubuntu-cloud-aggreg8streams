@@ -1,3 +1,6 @@
 /simplestreams-20180511-1421.db
 /simplestreams.db
 /simplestreams.db-journal
+/update-streams.sh
+/.idea/
+/certbot/
