@@ -10,6 +10,8 @@
           }
         },
       "queries": {
+          "Ubuntu 20.10 Groovy Gorilla Release base images 20201022.1": "select * from cloudimage where family = 'base'  and label = 'release' and release = 'groovy' and (version_name = '20201022.1' or version_name = '20201022a') order by family desc,version_name desc",
+          "Ubuntu 20.10 Groovy Gorilla Release minimal images 20201022": "select * from cloudimage where family = 'minimal'  and label = 'release' and release = 'groovy' and version_name = '20201022' order by family desc,version_name desc",
           "Ubuntu 20.04 Focal Fossa Release base images 20200423": "select * from cloudimage where family = 'base'  and label = 'release' and release = 'focal' and version_name = '20200423' order by family desc,version_name desc",
           "Ubuntu 20.04 Focal Fossa Release minimal images 20200423": "select * from cloudimage where family = 'minimal'  and label = 'release' and release = 'focal' and version_name = '20200423' order by family desc,version_name desc",
           "USN-3887-1: snapd vulnerability CVE": "select * from cloudimage where (version_name = '20190212.1' and release = 'bionic') or (version_name = '20190212' and release != 'bionic') order by version_name desc",
