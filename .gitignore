@@ -4,3 +4,4 @@
 /update-streams.sh
 /.idea/
 /certbot/
+/simplestreams.db.rollback
