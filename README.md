@@ -14,6 +14,7 @@ to queries in json or csv.
 Example:
 
 * [Find the latest Ubuntu 18.04 Bionic Minimal on AWS in the eu-west-1 region and return as json](https://aggreg8streams.tinyviking.ie/simplestreams.json?sql=select+image_id+from+cloudimage+where+label+%3D+%27release%27+and+release+%3D+%27bionic%27+and+family+%3D+%27minimal%27+and+content_id+%3D+%27com.ubuntu.cloud%3Areleased%3Aaws%27+and+crsn+%3D+%27eu-west-1%27+order+by+version_name+desc+limit+1&_shape=arrayfirst)
+  * This will return a single AWS Machine image ID in a JSON list. The payload is 383 bytes and takes 39ms being served from a very old intel nuc in my network closet. It takes no setup of libraries, and you only downloaded the data you needed.  
 
 Any query can be bookmarked and used in your automation.
 
